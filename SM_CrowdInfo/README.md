@@ -61,23 +61,49 @@
 
 ## 🚀 설치 및 실행 방법
 
-### 1. 필수 요구사항
+### 방법 1: 로컬 실행
+
+#### 1. 필수 요구사항
 - Python 3.8 이상
 - pip (Python 패키지 관리자)
 
-### 2. 패키지 설치
+#### 2. 저장소 클론
+
+```bash
+git clone https://github.com/vampstud01/2511_multicam_cursor.git
+cd 2511_multicam_cursor/SM_CrowdInfo
+```
+
+#### 3. 패키지 설치
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. 실행
+#### 4. 실행
 
 ```bash
 streamlit run app.py
 ```
 
 실행 후 브라우저에서 자동으로 `http://localhost:8501` 주소가 열립니다.
+
+### 방법 2: Streamlit Cloud 배포 (무료!)
+
+#### 1. GitHub 저장소 포크
+이 저장소를 자신의 GitHub 계정으로 포크합니다.
+
+#### 2. Streamlit Cloud 연결
+1. [Streamlit Cloud](https://share.streamlit.io/) 방문
+2. GitHub 계정으로 로그인
+3. "New app" 클릭
+4. 저장소 선택: `your-username/2511_multicam_cursor`
+5. Main file path: `SM_CrowdInfo/app.py`
+6. "Deploy!" 클릭
+
+#### 3. 배포 완료
+약 2-3분 후 앱이 배포되고 공개 URL을 받습니다!  
+예: `https://your-app-name.streamlit.app`
 
 ## 📁 파일 구조
 

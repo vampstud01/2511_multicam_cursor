@@ -29,8 +29,12 @@ st.set_page_config(
 def load_data():
     """지하철 혼잡도 데이터 로딩"""
     try:
+        # 현재 파일 위치 기준으로 CSV 경로 설정
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        csv_path = os.path.join(current_dir, 'SM_CrowdInfo.csv')
+        
         # EUC-KR 또는 CP949 인코딩으로 읽기
-        df = pd.read_csv('SM_CrowdInfo.csv', encoding='cp949')
+        df = pd.read_csv(csv_path, encoding='cp949')
         
         # 컬럼명 정리
         df.columns = df.columns.str.strip()
