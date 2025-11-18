@@ -1,5 +1,12 @@
 # 🚇 서울 지하철 혼잡도 대시보드
 
+[![CI](https://github.com/vampstud01/2511_multicam_cursor/actions/workflows/ci.yml/badge.svg)](https://github.com/vampstud01/2511_multicam_cursor/actions/workflows/ci.yml)
+[![Pages](https://github.com/vampstud01/2511_multicam_cursor/actions/workflows/pages.yml/badge.svg)](https://github.com/vampstud01/2511_multicam_cursor/actions/workflows/pages.yml)
+[![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://vampstud01.github.io/2511_multicam_cursor/)
+[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Streamlit](https://img.shields.io/badge/streamlit-1.31+-red.svg)](https://streamlit.io/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 서울 지하철의 시간대별 혼잡도 정보를 시각적으로 분석할 수 있는 인터랙티브 대시보드입니다.
 
 ## 📋 주요 기능

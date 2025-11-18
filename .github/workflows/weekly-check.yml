@@ -1,0 +1,101 @@
+name: Weekly Maintenance
+
+on:
+  schedule:
+    # 매주 월요일 오전 9시 (KST)
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+jobs:
+  dependency-update-check:
+    name: Dependency Update Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 체크아웃
+      uses: actions/checkout@v4
+    
+    - name: Python 3.11 설정
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: 최신 버전 확인
+      run: |
+        python -m pip install --upgrade pip
+        cd SM_CrowdInfo
+        echo "📦 현재 requirements.txt:"
+        cat requirements.txt
+        echo ""
+        echo "📦 최신 버전 확인:"
+        pip install --upgrade pip-tools
+        pip-compile --upgrade requirements.txt --output-file=requirements.new.txt || true
+        if [ -f requirements.new.txt ]; then
+          echo "업데이트 가능한 패키지:"
+          diff requirements.txt requirements.new.txt || true
+        fi
+    
+    - name: 보안 취약점 검사
+      run: |
+        pip install safety
+        cd SM_CrowdInfo
+        safety check -r requirements.txt --output text || true
+
+  health-check:
+    name: Project Health Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 체크아웃
+      uses: actions/checkout@v4
+    
+    - name: 파일 크기 검사
+      run: |
+        echo "📊 주요 파일 크기:"
+        du -h SM_CrowdInfo/app.py
+        du -h SM_CrowdInfo/report_generator.py
+        du -h SM_CrowdInfo/SM_CrowdInfo.csv
+        du -h docs/index.html
+    
+    - name: 코드 통계
+      run: |
+        echo "📈 코드 통계:"
+        echo "총 Python 파일:"
+        find SM_CrowdInfo -name "*.py" | wc -l
+        echo "총 라인 수:"
+        find SM_CrowdInfo -name "*.py" -exec wc -l {} + | tail -1
+    
+    - name: 저장소 상태
+      run: |
+        echo "📁 저장소 크기:"
+        du -sh .
+        echo ""
+        echo "📁 주요 디렉토리:"
+        du -sh SM_CrowdInfo docs .github
+
+  create-weekly-report:
+    name: Create Weekly Report
+    runs-on: ubuntu-latest
+    needs: [dependency-update-check, health-check]
+    if: always()
+    
+    steps:
+    - name: 주간 리포트 생성
+      run: |
+        echo "📊 주간 유지보수 리포트" > report.md
+        echo "=======================" >> report.md
+        echo "" >> report.md
+        echo "생성 시간: $(date)" >> report.md
+        echo "" >> report.md
+        echo "## 실행 결과" >> report.md
+        echo "- Dependency Check: ${{ needs.dependency-update-check.result }}" >> report.md
+        echo "- Health Check: ${{ needs.health-check.result }}" >> report.md
+        echo "" >> report.md
+        cat report.md
+    
+    - name: 리포트 아티팩트 업로드
+      uses: actions/upload-artifact@v3
+      with:
+        name: weekly-report
+        path: report.md
+

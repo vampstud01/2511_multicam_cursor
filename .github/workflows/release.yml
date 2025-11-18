@@ -1,0 +1,97 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 체크아웃
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: 버전 정보 추출
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION=${GITHUB_REF#refs/tags/}
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "📦 Release Version: $VERSION"
+    
+    - name: 릴리즈 노트 생성
+      id: release_notes
+      run: |
+        cat > release_notes.md << 'EOF'
+        ## 🎉 서울 지하철 혼잡도 대시보드 ${{ steps.version.outputs.version }}
+        
+        ### 주요 기능
+        - 🎯 나의 출퇴근 시간 맞춤 분석
+        - ⚖️ 역 비교 기능 (최대 5개)
+        - 🕐 지금 타기 좋은 시간 (실시간)
+        - 🔄 상행선/하행선 방향별 분석
+        - 📊 전체 대시보드
+        - 📄 PDF 보고서 자동 생성
+        
+        ### 기술 스택
+        - Python 3.8+
+        - Streamlit
+        - Plotly
+        - Pandas
+        - ReportLab
+        
+        ### 설치 방법
+        ```bash
+        git clone https://github.com/vampstud01/2511_multicam_cursor.git
+        cd 2511_multicam_cursor/SM_CrowdInfo
+        pip install -r requirements.txt
+        streamlit run app.py
+        ```
+        
+        ### 문서
+        - [README](https://github.com/vampstud01/2511_multicam_cursor/blob/main/SM_CrowdInfo/README.md)
+        - [기능 상세](https://github.com/vampstud01/2511_multicam_cursor/blob/main/SM_CrowdInfo/FEATURE_SUMMARY.md)
+        - [PDF 가이드](https://github.com/vampstud01/2511_multicam_cursor/blob/main/SM_CrowdInfo/PDF_REPORT_GUIDE.md)
+        - [GitHub Pages](https://vampstud01.github.io/2511_multicam_cursor/)
+        EOF
+    
+    - name: 릴리즈 패키지 생성
+      run: |
+        mkdir -p release_package
+        cp -r SM_CrowdInfo release_package/
+        cd release_package
+        zip -r ../subway-dashboard-${{ steps.version.outputs.version }}.zip SM_CrowdInfo/
+    
+    - name: GitHub Release 생성
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        name: Release ${{ steps.version.outputs.version }}
+        body_path: release_notes.md
+        files: |
+          subway-dashboard-${{ steps.version.outputs.version }}.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: 릴리즈 완료 알림
+      run: |
+        echo "🎉 릴리즈 생성 완료!"
+        echo "📦 버전: ${{ steps.version.outputs.version }}"
+        echo "🔗 URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}"
+

@@ -1,0 +1,170 @@
+name: CI - Code Quality & Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 체크아웃
+      uses: actions/checkout@v4
+    
+    - name: Python 3.11 설정
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: 의존성 설치
+      run: |
+        python -m pip install --upgrade pip
+        cd SM_CrowdInfo
+        pip install -r requirements.txt
+        pip install flake8 black isort
+    
+    - name: 코드 포맷 검사 (Black)
+      run: |
+        cd SM_CrowdInfo
+        black --check --diff app.py report_generator.py || true
+    
+    - name: Import 정렬 검사 (isort)
+      run: |
+        cd SM_CrowdInfo
+        isort --check-only --diff app.py report_generator.py || true
+    
+    - name: 코드 품질 검사 (Flake8)
+      run: |
+        cd SM_CrowdInfo
+        flake8 app.py report_generator.py --max-line-length=120 --ignore=E501,W503 || true
+    
+    - name: 파일 구조 검사
+      run: |
+        echo "📁 프로젝트 구조:"
+        ls -la SM_CrowdInfo/
+        echo ""
+        echo "✅ 필수 파일 확인:"
+        test -f SM_CrowdInfo/app.py && echo "✓ app.py" || echo "✗ app.py 없음"
+        test -f SM_CrowdInfo/report_generator.py && echo "✓ report_generator.py" || echo "✗ report_generator.py 없음"
+        test -f SM_CrowdInfo/requirements.txt && echo "✓ requirements.txt" || echo "✗ requirements.txt 없음"
+        test -f SM_CrowdInfo/README.md && echo "✓ README.md" || echo "✗ README.md 없음"
+        test -f SM_CrowdInfo/SM_CrowdInfo.csv && echo "✓ SM_CrowdInfo.csv" || echo "✗ SM_CrowdInfo.csv 없음"
+
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 체크아웃
+      uses: actions/checkout@v4
+    
+    - name: Python 3.11 설정
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: 의존성 보안 검사
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety
+        cd SM_CrowdInfo
+        safety check -r requirements.txt --output text || true
+    
+    - name: 의존성 버전 확인
+      run: |
+        cd SM_CrowdInfo
+        echo "📦 설치된 패키지:"
+        pip install -r requirements.txt
+        pip list
+
+  docs-check:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 체크아웃
+      uses: actions/checkout@v4
+    
+    - name: 문서 파일 확인
+      run: |
+        echo "📚 문서 파일 확인:"
+        test -f SM_CrowdInfo/README.md && echo "✓ README.md" || echo "✗ README.md"
+        test -f SM_CrowdInfo/FEATURE_SUMMARY.md && echo "✓ FEATURE_SUMMARY.md" || echo "✗ FEATURE_SUMMARY.md"
+        test -f SM_CrowdInfo/PDF_REPORT_GUIDE.md && echo "✓ PDF_REPORT_GUIDE.md" || echo "✗ PDF_REPORT_GUIDE.md"
+        test -f docs/index.html && echo "✓ docs/index.html (GitHub Pages)" || echo "✗ docs/index.html"
+    
+    - name: 마크다운 링크 검사
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        config-file: '.github/workflows/mlc_config.json'
+      continue-on-error: true
+
+  build-test:
+    name: Build & Import Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 체크아웃
+      uses: actions/checkout@v4
+    
+    - name: Python 3.11 설정
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: 의존성 설치
+      run: |
+        python -m pip install --upgrade pip
+        cd SM_CrowdInfo
+        pip install -r requirements.txt
+    
+    - name: Import 테스트
+      run: |
+        cd SM_CrowdInfo
+        python -c "import streamlit; print('✓ Streamlit:', streamlit.__version__)"
+        python -c "import pandas; print('✓ Pandas:', pandas.__version__)"
+        python -c "import plotly; print('✓ Plotly:', plotly.__version__)"
+        python -c "import reportlab; print('✓ ReportLab:', reportlab.Version)"
+    
+    - name: 모듈 Import 테스트
+      run: |
+        cd SM_CrowdInfo
+        python -c "from report_generator import generate_pdf_report, extract_insights; print('✓ report_generator 모듈 정상')"
+    
+    - name: 데이터 파일 검증
+      run: |
+        cd SM_CrowdInfo
+        python -c "
+import pandas as pd
+try:
+    df = pd.read_csv('SM_CrowdInfo.csv', encoding='cp949')
+    print(f'✓ 데이터 로드 성공: {len(df)} rows, {len(df.columns)} columns')
+    print(f'✓ 역 개수: {df.iloc[:, 3].nunique()}개')
+except Exception as e:
+    print(f'✗ 데이터 로드 실패: {e}')
+    exit(1)
+"
+
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [code-quality, dependency-check, docs-check, build-test]
+    if: always()
+    
+    steps:
+    - name: CI 결과 요약
+      run: |
+        echo "🎉 CI 파이프라인 실행 완료!"
+        echo ""
+        echo "✅ Code Quality: ${{ needs.code-quality.result }}"
+        echo "✅ Dependency Check: ${{ needs.dependency-check.result }}"
+        echo "✅ Documentation: ${{ needs.docs-check.result }}"
+        echo "✅ Build Test: ${{ needs.build-test.result }}"
+
