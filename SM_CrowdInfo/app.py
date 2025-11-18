@@ -189,7 +189,7 @@ def main():
     st.sidebar.header("📄 보고서 생성")
     
     if PDF_AVAILABLE:
-        if st.sidebar.button("🎯 PDF 보고서 생성", use_container_width=True):
+        if st.sidebar.button("🎯 PDF 보고서 생성", width='stretch'):
             with st.spinner("📊 보고서를 생성하는 중..."):
                 try:
                     # 폰트 정보 출력 (디버깅용)
@@ -208,7 +208,7 @@ def main():
                         data=pdf_buffer,
                         file_name=filename,
                         mime="application/pdf",
-                        use_container_width=True
+                        width='stretch'
                     )
                     
                     st.sidebar.success("✅ 보고서 생성 완료!")
@@ -322,7 +322,7 @@ def render_main_dashboard(df, time_columns, info_columns):
         hovermode='x unified'
     )
     fig_line.update_traces(line_color='#FF6B6B', line_width=3)
-    st.plotly_chart(fig_line, use_container_width=True)
+    st.plotly_chart(fig_line, width='stretch')
     
     # 평일/주말 비교
     if '전체' in [selected_day] or selected_day == "전체":
@@ -353,7 +353,7 @@ def render_main_dashboard(df, time_columns, info_columns):
             height=400,
             hovermode='x unified'
         )
-        st.plotly_chart(fig_comparison, use_container_width=True)
+        st.plotly_chart(fig_comparison, width='stretch')
     
     # 역별 혼잡도 히트맵
     st.header("🗺️ 역별 혼잡도 히트맵")
@@ -384,7 +384,7 @@ def render_main_dashboard(df, time_columns, info_columns):
         yaxis_title="역명 (요일구분)"
     )
     
-    st.plotly_chart(fig_heatmap, use_container_width=True)
+    st.plotly_chart(fig_heatmap, width='stretch')
     
     # 상위 혼잡 역 목록
     st.header("🏆 가장 혼잡한 역 TOP 10")
@@ -407,13 +407,13 @@ def render_main_dashboard(df, time_columns, info_columns):
     
     st.dataframe(
         top_congestion_df.style.format({'최대 혼잡도': '{:.1f}%'}),
-        use_container_width=True,
+        width='stretch',
         hide_index=True
     )
     
     # 원본 데이터 보기
     with st.expander("📋 원본 데이터 보기"):
-        st.dataframe(filtered_df, use_container_width=True)
+        st.dataframe(filtered_df, width='stretch')
 
 def render_commute_analysis(df, time_columns, info_columns):
     """나의 출퇴근 시간 맞춤 분석"""
@@ -516,7 +516,7 @@ def render_commute_analysis(df, time_columns, info_columns):
         xaxis_tickangle=-45
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # 더 나은 시간대 추천
     st.subheader("💡 더 쾌적한 출근 시간 추천")
@@ -594,7 +594,7 @@ def render_station_comparison(df, time_columns, info_columns):
                             color='혼잡도',
                             color_continuous_scale='RdYlGn_r')
                 fig.update_layout(height=400)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
     
     # 시간대별 비교 차트
     st.subheader("⏰ 시간대별 혼잡도 비교")
@@ -625,7 +625,7 @@ def render_station_comparison(df, time_columns, info_columns):
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # 통계 테이블
     st.subheader("📋 상세 통계")
@@ -645,7 +645,7 @@ def render_station_comparison(df, time_columns, info_columns):
             })
     
     stats_df = pd.DataFrame(stats_data)
-    st.dataframe(stats_df, use_container_width=True, hide_index=True)
+    st.dataframe(stats_df, width='stretch', hide_index=True)
 
 def render_best_time_now(df, time_columns, info_columns):
     """지금 타기 좋은 시간 가이드"""
@@ -773,7 +773,7 @@ def render_best_time_now(df, time_columns, info_columns):
         xaxis_tickangle=-45
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # 추천 시간대
     st.subheader("💡 추천 시간대")
@@ -970,7 +970,7 @@ def render_direction_analysis(df, time_columns, info_columns):
         xaxis_tickangle=-45
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # 역별 출퇴근 시간 혼잡도 비교
     st.subheader("🚉 역별 출퇴근 시간 혼잡도 비교")
@@ -1019,7 +1019,7 @@ def render_direction_analysis(df, time_columns, info_columns):
             xaxis_tickangle=-45
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # 가장 큰 차이를 보이는 역
         max_diff_station = comp_df.loc[comp_df['차이'].abs().idxmax()]

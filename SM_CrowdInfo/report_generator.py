@@ -120,17 +120,54 @@ def create_custom_styles():
     return styles
 
 def save_plotly_chart(fig, width=700, height=400):
-    """Plotly 차트를 이미지로 변환"""
+    """Plotly 차트를 이미지로 변환 (Kaleido 대신 matplotlib 사용)"""
     try:
-        # Plotly를 이미지로 저장
-        img_bytes = pio.to_image(fig, format='png', width=width, height=height, scale=2)
-        return BytesIO(img_bytes)
+        # Kaleido 대신 matplotlib으로 차트 생성
+        import matplotlib.pyplot as plt
+        import matplotlib
+        matplotlib.use('Agg')  # GUI 없는 백엔드
+        
+        # Plotly 데이터 추출
+        if hasattr(fig, 'data') and len(fig.data) > 0:
+            trace = fig.data[0]
+            x = trace.x
+            y = trace.y
+            
+            # matplotlib으로 그리기
+            plt.figure(figsize=(width/100, height/100), dpi=100)
+            plt.plot(x, y, color='#FF6B6B', linewidth=2, marker='o', markersize=4)
+            plt.fill_between(range(len(y)), y, alpha=0.2, color='#FF6B6B')
+            plt.xticks(rotation=45, ha='right', fontsize=6)
+            plt.yticks(fontsize=8)
+            plt.grid(True, alpha=0.3)
+            plt.tight_layout()
+            
+            # BytesIO로 저장
+            buffer = BytesIO()
+            plt.savefig(buffer, format='PNG', dpi=150, bbox_inches='tight')
+            plt.close()
+            buffer.seek(0)
+            return buffer
+        else:
+            raise Exception("No data in figure")
+            
     except Exception as e:
         print(f"차트 저장 오류: {e}")
-        # 더미 이미지 생성
-        img = PILImage.new('RGB', (width, height), color='white')
+        # 텍스트로 대체 이미지 생성
+        import matplotlib.pyplot as plt
+        import matplotlib
+        matplotlib.use('Agg')
+        
+        fig, ax = plt.subplots(figsize=(width/100, height/100))
+        ax.text(0.5, 0.5, 'Chart\n(Visualization)', 
+                ha='center', va='center', fontsize=20, color='gray')
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.axis('off')
+        
         buffer = BytesIO()
-        img.save(buffer, format='PNG')
+        plt.savefig(buffer, format='PNG', dpi=100, bbox_inches='tight')
+        plt.close()
         buffer.seek(0)
         return buffer
 
