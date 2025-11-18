@@ -23,18 +23,47 @@ from PIL import Image as PILImage
 # 한글 폰트 등록 시도
 def register_korean_font():
     """한글 폰트 등록"""
+    import os
+    import platform
+    
+    # 여러 경로에서 폰트 찾기
+    font_paths = [
+        # Windows
+        'C:/Windows/Fonts/malgun.ttf',
+        'C:/Windows/Fonts/gulim.ttc',
+        # Linux (Ubuntu/Debian) - packages.txt로 설치된 경로
+        '/usr/share/fonts/truetype/nanum/NanumGothic.ttf',
+        '/usr/share/fonts/truetype/nanum/NanumBarunGothic.ttf',
+        '/usr/share/fonts/truetype/nanum-gothic/NanumGothic.ttf',
+        # macOS
+        '/Library/Fonts/NanumGothic.ttf',
+        '/System/Library/Fonts/AppleGothic.ttf',
+        # 상대 경로
+        'NanumGothic.ttf',
+        'malgun.ttf',
+    ]
+    
+    # 사용 가능한 폰트 찾기
+    for font_path in font_paths:
+        if os.path.exists(font_path):
+            try:
+                font_name = 'KoreanFont'
+                pdfmetrics.registerFont(TTFont(font_name, font_path))
+                print(f"✓ 한글 폰트 등록 성공: {font_path}")
+                return font_name
+            except Exception as e:
+                print(f"✗ 폰트 등록 실패 ({font_path}): {e}")
+                continue
+    
+    # 모든 폰트 실패 시 DejaVu Sans 사용 (유니코드 지원)
+    print("⚠ 한글 폰트를 찾을 수 없습니다. DejaVuSans를 사용합니다.")
     try:
-        # Windows 기본 폰트
-        pdfmetrics.registerFont(TTFont('Malgun', 'malgun.ttf'))
-        return 'Malgun'
+        # DejaVu Sans는 대부분의 Linux에 기본 설치됨
+        pdfmetrics.registerFont(TTFont('DejaVu', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
+        return 'DejaVu'
     except:
-        try:
-            # 나눔고딕
-            pdfmetrics.registerFont(TTFont('NanumGothic', 'NanumGothic.ttf'))
-            return 'NanumGothic'
-        except:
-            # 폰트 없으면 기본 폰트 사용
-            return 'Helvetica'
+        print("⚠ 기본 폰트를 사용합니다. 한글이 제대로 표시되지 않을 수 있습니다.")
+        return 'Helvetica'
 
 KOREAN_FONT = register_korean_font()
 
@@ -165,14 +194,23 @@ def create_time_series_chart(df, time_columns, title="시간대별 평균 혼잡
         fillcolor='rgba(255, 107, 107, 0.2)'
     ))
     
+    # 폰트가 없을 경우 영문으로 표시
+    if KOREAN_FONT in ['Helvetica', 'DejaVu']:
+        title = "Average Congestion by Time"
+        xaxis_title = "Time"
+        yaxis_title = "Congestion (%)"
+    else:
+        xaxis_title = '시간대'
+        yaxis_title = '평균 혼잡도 (%)'
+    
     fig.update_layout(
         title=title,
-        xaxis_title='시간대',
-        yaxis_title='평균 혼잡도 (%)',
+        xaxis_title=xaxis_title,
+        yaxis_title=yaxis_title,
         xaxis_tickangle=-45,
         height=400,
         showlegend=False,
-        font=dict(family="Malgun Gothic, Arial", size=10),
+        font=dict(family="Arial", size=10),
         plot_bgcolor='white',
         paper_bgcolor='white'
     )

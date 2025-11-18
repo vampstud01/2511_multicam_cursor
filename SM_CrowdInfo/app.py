@@ -192,6 +192,10 @@ def main():
         if st.sidebar.button("🎯 PDF 보고서 생성", use_container_width=True):
             with st.spinner("📊 보고서를 생성하는 중..."):
                 try:
+                    # 폰트 정보 출력 (디버깅용)
+                    import report_generator
+                    st.sidebar.info(f"사용 중인 폰트: {report_generator.KOREAN_FONT}")
+                    
                     # PDF 생성
                     pdf_buffer = generate_pdf_report(df, time_columns, info_columns)
                     
